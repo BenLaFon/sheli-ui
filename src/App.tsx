@@ -1,4 +1,4 @@
-import {memo, useState, useEffect, useCallback } from 'react'
+import { memo, useState, useEffect, useCallback } from 'react'
 import { DEFAULT_SETTINGS } from './utils/constants'
 import { useSessionStore } from './stores/sessionStore'
 import { useMessageStore } from './stores/messageStore'
@@ -7,11 +7,14 @@ import { useMessageHandling } from './hooks/useMessageHandling'
 import { ChatContainer } from './components/Chat/ChatContainer'
 import { MessageInput } from './components/Chat/MessageInput'
 import { SettingsPanel } from './components/Settings/SettingsPanel'
+import { LayoutShell } from './components/Layout/LayoutShell'
+import type { LayoutMode } from './components/Layout/TopBar'
 
 const MemoizedSettingsPanel = memo(SettingsPanel)
 
 function App() {
   const [selectedMode, setSelectedMode] = useState<string>(DEFAULT_SETTINGS.MODE)
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>('full')
   
   const { sessionId, isInitializing, error: sessionError, initializeSession } = useSessionStore()
   const { 
@@ -21,19 +24,40 @@ function App() {
   const { hasReceivedFirstEvent, setHasReceivedFirstEvent, isLoading, setIsLoading } = useEventStream()
   const { handleMessageSubmit } = useMessageHandling()
 
-
-
-  // Initialize session on app initialization
   useEffect(() => {
     initializeSession()
   }, [initializeSession])
 
-  // Display session error if any
   useEffect(() => {
     if (sessionError) {
       addErrorMessage(sessionError)
     }
   }, [sessionError, addErrorMessage])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.metaKey && !e.shiftKey && !e.altKey && !e.ctrlKey) {
+        if (e.key === '1') {
+          e.preventDefault()
+          document.getElementById('dashboard-panel')?.focus()
+        } else if (e.key === '2') {
+          e.preventDefault()
+          document.getElementById('chat-panel')?.focus()
+        } else if (e.key === '3') {
+          e.preventDefault()
+          document.getElementById('canvas-panel')?.focus()
+        }
+      }
+      
+      if (e.metaKey && e.shiftKey && e.key.toLowerCase() === 'f') {
+        e.preventDefault()
+        setLayoutMode(prev => prev === 'focus' ? 'full' : 'focus')
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   const onMessageSubmit = useCallback(async (userInput: string) => {
     await handleMessageSubmit(
@@ -46,30 +70,26 @@ function App() {
     )
   }, [handleMessageSubmit, selectedMode, isLoading, setIsLoading, hasReceivedFirstEvent, setHasReceivedFirstEvent])
 
-
-
   return (
-    <div className="flex flex-col h-screen max-w-4xl mx-auto p-4">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">OpenCode UI</h1>
-      </div>
-      
-      <ChatContainer isLoading={isLoading} />
+    <LayoutShell mode={layoutMode} onModeChange={setLayoutMode}>
+      <div className="flex flex-col h-full p-4">
+        <ChatContainer isLoading={isLoading} />
 
-      <div className="space-y-2">
-        <MemoizedSettingsPanel 
-          selectedMode={selectedMode}
-          onModeChange={setSelectedMode}
-        />
-        
-        <MessageInput
-          onSubmit={onMessageSubmit}
-          disabled={isLoading || !sessionId || isInitializing}
-          isLoading={isLoading}
-          isInitializing={isInitializing}
-        />
+        <div className="space-y-2 mt-auto pt-4">
+          <MemoizedSettingsPanel 
+            selectedMode={selectedMode}
+            onModeChange={setSelectedMode}
+          />
+          
+          <MessageInput
+            onSubmit={onMessageSubmit}
+            disabled={isLoading || !sessionId || isInitializing}
+            isLoading={isLoading}
+            isInitializing={isInitializing}
+          />
+        </div>
       </div>
-    </div>
+    </LayoutShell>
   )
 }
 
