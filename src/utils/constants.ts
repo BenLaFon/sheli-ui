@@ -1,6 +1,14 @@
-// API Configuration
+// API Configuration — auto-detect: use same hostname as the UI on port 8800
+const detectApiUrl = (): string => {
+  if (import.meta.env.VITE_API_BASE_URL) return import.meta.env.VITE_API_BASE_URL
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+    return `http://${window.location.hostname}:8800`
+  }
+  return 'http://127.0.0.1:8800'
+}
+
 export const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:4096',
+  BASE_URL: detectApiUrl(),
   TIMEOUT: 30000, // 30 seconds
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000 // 1 second
