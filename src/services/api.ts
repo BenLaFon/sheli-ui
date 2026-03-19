@@ -38,15 +38,13 @@ const apiRequest = async <T>(
 ): Promise<T> => {
   const url = `${API_BASE_URL}${endpoint}`
   
-  const defaultOptions: RequestInit = {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers
-    }
+  const headers: Record<string, string> = { ...options.headers as Record<string, string> }
+  if (options.body) {
+    headers['Content-Type'] = headers['Content-Type'] || 'application/json'
   }
 
   const makeRequest = async (): Promise<T> => {
-    const response = await fetch(url, { ...defaultOptions, ...options })
+    const response = await fetch(url, { ...options, headers })
 
     if (!response.ok) {
       throw await createAppError(response)
