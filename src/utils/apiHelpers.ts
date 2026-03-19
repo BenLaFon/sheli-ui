@@ -50,17 +50,18 @@ export const withTimeout = <T>(
 }
 
 // ID generation utility
-const generateId = (): string => {
+const randomSuffix = (): string => {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID()
+    return crypto.randomUUID().replace(/-/g, '').slice(0, 20)
   }
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0
-    return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16)
-  })
+  return 'xxxxxxxxxxxxxxxxxxxx'.replace(/x/g, () =>
+    ((Math.random() * 36) | 0).toString(36)
+  )
 }
 
-// Message creation helpers
+const generateMessageId = (): string => `msg_${randomSuffix()}`
+const generatePartId = (): string => `prt_${randomSuffix()}`
+
 export const createTextMessageRequest = (
   text: string,
   sessionID: string,
@@ -68,14 +69,14 @@ export const createTextMessageRequest = (
   modelID: string = DEFAULT_SETTINGS.MODEL,
   mode: string = 'build'
 ): SendMessageRequest => {
-  const messageID = generateId()
+  const messageID = generateMessageId()
   return {
     messageID,
     providerID,
     modelID,
     mode,
     parts: [{
-      id: generateId(),
+      id: generatePartId(),
       sessionID,
       messageID,
       type: 'text',
@@ -92,14 +93,14 @@ export const createFileMessageRequest = (
   modelID: string = DEFAULT_SETTINGS.MODEL,
   mode: string = 'build'
 ): SendMessageRequest => {
-  const messageID = generateId()
+  const messageID = generateMessageId()
   return {
     messageID,
     providerID,
     modelID,
     mode,
     parts: [{
-      id: generateId(),
+      id: generatePartId(),
       sessionID,
       messageID,
       type: 'file',
@@ -115,7 +116,7 @@ export const createMixedMessageRequest = (
   modelID: string = DEFAULT_SETTINGS.MODEL,
   mode: string = 'build'
 ): SendMessageRequest => ({
-  messageID: generateId(),
+  messageID: generateMessageId(),
   providerID,
   modelID,
   mode,
