@@ -8,17 +8,18 @@ import { CanvasPanel } from '../Canvas/CanvasPanel'
 interface LayoutShellProps {
   mode: LayoutMode
   onModeChange: (mode: LayoutMode) => void
+  onOpenCommandPalette: () => void
   children: ReactNode
 }
 
-export function LayoutShell({ mode, onModeChange, children }: LayoutShellProps) {
+export function LayoutShell({ mode, onModeChange, onOpenCommandPalette, children }: LayoutShellProps) {
   const showDashboard = mode !== 'focus'
   const dashboardCollapsed = mode === 'work'
   const showCanvas = mode === 'full' || mode === 'work'
 
   return (
     <div className="flex flex-col h-screen w-full overflow-hidden bg-background text-foreground">
-      <TopBar mode={mode} onModeChange={onModeChange} />
+      <TopBar mode={mode} onModeChange={onModeChange} onOpenCommandPalette={onOpenCommandPalette} />
       
       <div className="flex flex-1 overflow-hidden">
         <Panel 

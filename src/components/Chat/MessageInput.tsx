@@ -1,6 +1,8 @@
 import React, { useRef, useCallback, type FormEvent } from 'react'
+import { Mic } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Textarea } from '../ui/textarea'
+import { useVoiceStore } from '../../stores/voiceStore'
 
 interface MessageInputProps {
   onSubmit: (message: string) => void
@@ -11,6 +13,7 @@ interface MessageInputProps {
 
 export function MessageInput({ onSubmit, disabled, isLoading, isInitializing }: MessageInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const { isActive, activate } = useVoiceStore()
 
   const handleSubmit = useCallback((e: FormEvent) => {
     e.preventDefault()
@@ -40,13 +43,25 @@ export function MessageInput({ onSubmit, disabled, isLoading, isInitializing }: 
         className="flex-1 min-h-[60px] resize-none"
         onKeyDown={handleKeyDown}
       />
-      <Button 
-        type="submit" 
-        disabled={disabled}
-        className="self-end"
-      >
-        {isLoading ? 'Sending...' : isInitializing ? 'Initializing...' : 'Send'}
-      </Button>
+      <div className="flex flex-col gap-2 self-end">
+        <Button 
+          type="button"
+          variant="outline"
+          size="icon"
+          disabled={disabled}
+          onClick={activate}
+          className={isActive ? 'text-accent border-accent bg-accent/10' : ''}
+          title="Voice Mode (Cmd+/)"
+        >
+          <Mic className="w-4 h-4" />
+        </Button>
+        <Button 
+          type="submit" 
+          disabled={disabled}
+        >
+          {isLoading ? 'Sending...' : isInitializing ? 'Initializing...' : 'Send'}
+        </Button>
+      </div>
     </form>
   )
 }
